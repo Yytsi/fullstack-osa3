@@ -32,6 +32,10 @@ app.post('/api/persons', (req, res) => {
         return res.status(400).json({ error: 'Name or number field is missing' })
     }
 
+    if (persons.find(person => person.name === name)) {
+        return res.status(400).json({ error: 'Cannot have two contacts with the same name' })
+    }
+
     const newPerson = {
         name,
         number,
