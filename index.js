@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+app.use(express.json())
+
 let persons = [
     { name: 'Arto Hellas', number: '040-123456', id: 1 },
     { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
@@ -21,6 +23,23 @@ app.delete('/api/persons/:id', (req, res) => {
     persons = persons.filter(person => person.id !== id)
     
     res.status(204).end()
+})
+
+app.post('/api/persons', (req, res) => {
+    const { name, number } = req.body
+
+    if (!name || !number) {
+        return res.status(400).json({ error: 'Name or number field is missing' })
+    }
+
+    const newPerson = {
+        name,
+        number,
+        id: Math.floor(Math.random() * 10000000)
+    }
+
+    persons.push(newPerson)
+    res.status(201).json(newPerson)
 })
 
 app.get('/api/persons/:id', (req, res) => {
