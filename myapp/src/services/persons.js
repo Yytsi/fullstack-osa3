@@ -1,5 +1,5 @@
 import axios from 'axios'
-const baseUrl = 'https://fullstack-osa3-tuukka.fly.dev/api/persons'
+const baseUrl = '/api/persons'
 
 const getAll = () => {
     return axios.get(baseUrl)
