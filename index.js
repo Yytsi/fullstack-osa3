@@ -70,6 +70,10 @@ app.get('/api/persons/:id', (req, res) => {
     }
 })
 
+app.use((req, res) => {
+    res.status(404).json({ error: 'Unknown request' })
+})
+
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`)
