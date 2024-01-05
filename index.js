@@ -1,7 +1,10 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
 const app = express()
+const Person = require('./models/person')
+const person = require('./models/person')
 
 app.use(express.json())
 app.use(cors())
@@ -28,7 +31,12 @@ app.get('/info', (req, res) => {
 })
 
 app.get('/api/persons', (req, res) => {
-    res.json(persons)
+    Person.find({}).then(result => {
+        res.json(result)
+    }).catch(error => {
+        console.log('error happened while getting persons', error)
+        res.status(500).end()
+    })
 })
 
 app.delete('/api/persons/:id', (req, res) => {
@@ -45,18 +53,17 @@ app.post('/api/persons', (req, res) => {
         return res.status(400).json({ error: 'Name or number field is missing' })
     }
 
-    if (persons.find(person => person.name === name)) {
-        return res.status(400).json({ error: 'Cannot have two contacts with the same name' })
-    }
-
-    const newPerson = {
+    const newPerson = new Person({
         name,
-        number,
-        id: Math.floor(Math.random() * 10000000)
-    }
+        number
+    })
 
-    persons.push(newPerson)
-    res.status(201).json(newPerson)
+    newPerson.save().then(savedPerson => {
+        res.json(savedPerson)
+    }).catch(error => {
+        console.log(error)
+        res.status(400).json({ error: 'Failed to save person' })
+    })
 })
 
 app.get('/api/persons/:id', (req, res) => {
