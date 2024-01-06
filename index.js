@@ -26,8 +26,12 @@ morgan.token('post-data', (req, res) => {
 
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :post-data'))
 
-app.get('/info', (req, res) => {
-    res.send(`<p>Phonebook has info for ${persons.length} people</p><p>${new Date()}</p>`)
+app.get('/info', (req, res, next) => {
+    Person.countDocuments({})
+        .then(count => {
+            res.send(`<p>Phonebook has info for ${count} people</p><p>${new Date()}</p>`)
+        })
+        .catch(error => next(error))
 })
 
 app.get('/api/persons', (req, res, next) => {
@@ -61,14 +65,9 @@ app.post('/api/persons', (req, res, next) => {
 })
 
 app.get('/api/persons/:id', (req, res) => {
-    const id = Number(req.params.id)
-    const person = persons.find(p => p.id === id)
-
-    if (person) {
-        res.json(person)
-    } else {
-        res.status(404).end()
-    }
+    Person.findById(req.params.id).then(result => {
+        res.json(result)
+    }).catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
