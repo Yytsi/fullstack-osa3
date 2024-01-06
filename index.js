@@ -71,6 +71,24 @@ app.get('/api/persons/:id', (req, res) => {
     }
 })
 
+app.put('/api/persons/:id', (req, res, next) => {
+    const { name, number } = req.body
+
+    if (!name || !number) {
+        return res.status(400).json({ error: 'Name or number field is missing' })
+    }
+
+    const person = {
+        name,
+        number
+    }
+
+    Person.findByIdAndUpdate(req.params.id, person, { new: true, runValidators: true, context: 'query' })
+    .then(result => {
+        res.json(result)
+    }).catch(error => next(error))
+})
+
 app.use((error, req, res, next) => {
     console.log(error.message)
 
@@ -81,6 +99,7 @@ app.use((error, req, res, next) => {
     } else if (error.name === 'MongoError' && error.code === 11000) {
         return res.status(400).json({ error: 'Duplicate key error' })
     }
+    
 
     res.status(500).json({ error: 'Internal server error' })
 })
