@@ -30,20 +30,20 @@ app.get('/info', (req, res) => {
     res.send(`<p>Phonebook has info for ${persons.length} people</p><p>${new Date()}</p>`)
 })
 
-app.get('/api/persons', (req, res) => {
+app.get('/api/persons', (req, res, next) => {
     Person.find({}).then(result => {
         res.json(result)
     }).catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (req, res) => {
+app.delete('/api/persons/:id', (req, res, next) => {
     Person.findByIdAndDelete(req.params.id).then(result => {
         console.log("deleted person", result)
         res.status(204).end()
     }).catch(error => next(error))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
     const { name, number } = req.body
 
     if (!name || !number) {
