@@ -33,20 +33,14 @@ app.get('/info', (req, res) => {
 app.get('/api/persons', (req, res) => {
     Person.find({}).then(result => {
         res.json(result)
-    }).catch(error => {
-        console.log('error happened while getting persons', error)
-        res.status(500).end()
-    })
+    }).catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (req, res) => {
     Person.findByIdAndDelete(req.params.id).then(result => {
         console.log("deleted person", result)
         res.status(204).end()
-    }).catch(error => {
-        console.log(error)
-        res.status(400).json({ error: 'Failed to delete person' })
-    })
+    }).catch(error => next(error))
 })
 
 app.post('/api/persons', (req, res) => {
@@ -63,10 +57,7 @@ app.post('/api/persons', (req, res) => {
 
     newPerson.save().then(savedPerson => {
         res.json(savedPerson)
-    }).catch(error => {
-        console.log(error)
-        res.status(400).json({ error: 'Failed to save person' })
-    })
+    }).catch(error => next(error))
 })
 
 app.get('/api/persons/:id', (req, res) => {
@@ -78,6 +69,20 @@ app.get('/api/persons/:id', (req, res) => {
     } else {
         res.status(404).end()
     }
+})
+
+app.use((error, req, res, next) => {
+    console.log(error.message)
+
+    if (error.name === 'CastError') {
+        return res.status(400).json({ error: 'Malformed id' })
+    } else if (error.name === 'ValidationError') {
+        return res.status(400).json({ error: error.message })
+    } else if (error.name === 'MongoError' && error.code === 11000) {
+        return res.status(400).json({ error: 'Duplicate key error' })
+    }
+
+    res.status(500).json({ error: 'Internal server error' })
 })
 
 app.use((req, res) => {
