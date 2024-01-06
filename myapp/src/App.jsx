@@ -33,12 +33,16 @@ const AddButton = ({ persons, newName, newNumber, setPersons, setNewName, setNew
           }
           return
         }
+
         personService.create({ name: newName, number: newNumber }).then(response => {
           console.log("created", newName, newNumber)
           showNotification(`Added ${newName}`, true)
           setPersons(persons.concat(response.data))
           setNewName('')
           setNewNumber('')
+        }).catch(error => {
+          console.log("error when creating", error)
+          showNotification(error.response.data.error, false)
         })
       }}>add</button>
     </div>
