@@ -91,7 +91,7 @@ app.use((error, req, res, next) => {
   } else if (error.name === 'MongoError' && error.code === 11000) {
     return res.status(400).json({ error: 'Duplicate key error' })
   }
-    
+
 
   res.status(500).json({ error: 'Internal server error' })
 })
