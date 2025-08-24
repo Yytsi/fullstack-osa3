@@ -154,7 +154,6 @@ const App = () => {
           <AddButton persons={persons} newName={newName} newNumber={newNumber} setPersons={setPersons} setNewName={setNewName} setNewNumber={setNewNumber} showNotification={showNotification}/>
         </div>
       </form>
-      <div>debug: |{newName}|</div>
       <h2>Numbers</h2>
       <ShowPersons persons={persons} filterName={filterName} deletePerson={deletePerson} showNotification={showNotification}/>
     </div>
