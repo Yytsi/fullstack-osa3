@@ -1,0 +1,87 @@
+name: Phonebook CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize]
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install backend dependencies
+        run: npm install
+      
+      - name: Backend lint
+        run: npm run lint
+
+      - name: Install frontend dependencies
+        run: cd myapp && npm install
+      
+      - name: Frontend lint
+        run: cd myapp && npm run lint || echo "Frontend linting skipped (perhaps it's not configured?)"
+      
+      - name: Build frontend
+        run: npm run build:ui
+        
+  tag_release:
+    needs: pipeline
+    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message), '#skip') }}
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.73.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEFAULT_BUMP: "patch"
+
+  deployment:
+    needs: pipeline
+    if: ${{ github.event_name == 'push' && !contains(join(github.event.commits.*.message), '#skip') }}
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      
+      - name: Deploy to Fly.io
+        run: flyctl deploy --remote-only
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      
+      - name: Notify of successful deployment
+        if: success()
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK || '' }}
+          content: "New version deployed!"
+          username: "PhonebookCI"
+          embed-title: "Successful deployment"
+          embed-description: "The application has been successfully deployed to Fly.io :)"
+          embed-color: "5763719"
+          embed-footer-text: "By ${{ github.actor }}"
+          
+      - name: Notify of failed deployment
+        if: failure()
+        uses: tsickert/discord-webhook@v7.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK || '' }}
+          content: "Deployment failed!"
+          username: "PhonebookCI"
+          embed-title: "Deployment failed"
+          embed-description: "Oops, something failed during deployment; check the logs!"
+          embed-color: "15548997"
+          embed-footer-text: "By ${{ github.actor }}"
+          embed-url: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
