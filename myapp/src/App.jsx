@@ -20,7 +20,7 @@ const AddButton = ({ persons, newName, newNumber, setPersons, setNewName, setNew
           if (window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)) {
             const personId = persons.find(person => person.name === newName).id
             setPersons(persons.map(person => person.id !== personId ? person : { ...person, number: newNumber }))
-            personService.update(personId, { name: newName, number: newNumber }).then(response => {
+            personService.update(personId, { name: newName, number: newNumber }).then(() => {
               console.log("updated", newName, newNumber)
               showNotification(`Updated ${newName}`, true)
               setNewName('')
@@ -113,7 +113,7 @@ const App = () => {
   }
 
   const deletePerson = (id) => {
-    personService.remove(id).then(response => {
+    personService.remove(id).then(() => {
       setPersons(persons.filter(person => person.id !== id))
     }).catch(error => {
       console.log("error", error)
